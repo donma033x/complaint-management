@@ -4,45 +4,41 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # 复制 package 文件
-COPY package.json ./
-RUN npm install --package-lock-only && npm ci
+COPY package.json package-lock.json ./
+RUN npm ci --only=production
 
 # 构建阶段
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
 
-# 构建应用
+# 构建应用为 standalone 模式
 RUN npm run build
 
-# 生产运行阶段
-FROM node:20-alpine AS runner
+# 生产运行阶段 - 使用 distroless 最小化镜像
+FROM node:20-alpine
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 # 创建非root用户
-RUN addgroup -g 1001 -S nodejs &&    adduser -S nextjs -u 1001
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-# 复制构建产物（非standalone模式）
+# 从 builder 复制 standalone 产物（比复制 .next + node_modules 更小）
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --chown=nextjs:nodejs . .
 
-# 创建数据目录并设置正确的所有者和权限
-RUN mkdir -p /app/data && \
-    chown -R nextjs:nodejs /app/data && \
-    chmod 755 /app/data
+# 创建数据目录
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data && chmod 755 /app/data
 
 # 切换到非root用户
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
-
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
