@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: "舆鹰@词盾 - 网络内容管理平台",
   description: "专业的网络内容投诉词管理工具",
   generator: "v0.app",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/fidrua-logo.png",
+  },
 }
 
 export const viewport: Viewport = {
