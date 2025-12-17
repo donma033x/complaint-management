@@ -14,6 +14,7 @@ interface Complaint {
   usageCount: number
   createdAt: number
   updatedAt: number
+  lastUsedAt?: number  // 上次统计的时间，用于1分钟内去重
 }
 
 let categories: Category[] = [

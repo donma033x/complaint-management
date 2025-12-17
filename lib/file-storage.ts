@@ -196,12 +196,19 @@ export async function importData(importData: { categories: Category[]; complaint
   };
 }
 
-// 跟踪投诉使用情况
+// 跟踪投诉使用情况 (1分钟内只统计1次)
 export async function trackComplaintUsage(id: string) {
   const data = await readData();
   const complaint = data.complaints.find((c) => c.id === id);
   if (complaint) {
-    complaint.usageCount++;
-    await writeData(data);
+    const now = Date.now();
+    const ONE_MINUTE = 60 * 1000;
+    
+    // 检查是否在1分钟内已经统计过
+    if (!complaint.lastUsedAt || (now - complaint.lastUsedAt) >= ONE_MINUTE) {
+      complaint.usageCount++;
+      complaint.lastUsedAt = now;
+      await writeData(data);
+    }
   }
 }

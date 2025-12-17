@@ -10,6 +10,7 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json())
 export function ComplaintSearch() {
   const [query, setQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
   const { data, error } = useSWR(
     query.length >= 2 ? `/api/complaints/search?q=${encodeURIComponent(query)}` : null,
     fetcher,
@@ -20,9 +21,11 @@ export function ComplaintSearch() {
     setIsSearching(value.length >= 2)
   }
 
-  const handleCopy = async (content: string) => {
+  const handleCopy = async (content: string, resultId: string) => {
     try {
       await navigator.clipboard.writeText(content)
+      setCopiedId(resultId)
+      setTimeout(() => setCopiedId(null), 2000)
     } catch (err) {
       console.error("Failed to copy:", err)
     }
@@ -71,22 +74,70 @@ export function ComplaintSearch() {
               {data.results.map((result: any) => (
                 <div
                   key={result.id}
-                  className="border border-slate-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer"
-                  onClick={() => handleCopy(result.content)}
+                  className={`border-2 rounded-lg p-4 transition-all cursor-pointer ${
+                    copiedId === result.id
+                      ? "border-green-500 bg-green-50"
+                      : "border-slate-200 hover:border-blue-300 hover:bg-blue-50"
+                  }`}
+                  onClick={() => {
+                    handleCopy(result.content, result.id)
+                    // Track usage
+                    fetch("/api/complaints/track", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ complaintId: result.id }),
+                    }).catch((err) => console.error("Failed to track:", err))
+                  }}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded">
                       {result.categoryName}
                     </span>
-                    <Button variant="ghost" size="sm" className="text-slate-400">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                        />
-                      </svg>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`text-sm ${copiedId === result.id ? "text-green-600" : "text-slate-400"}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleCopy(result.content, result.id)
+                        // Track usage
+                        fetch("/api/complaints/track", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ complaintId: result.id }),
+                        }).catch((err) => console.error("Failed to track:", err))
+                      }}
+                    >
+                      {copiedId === result.id ? (
+                        <>
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>已复制</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                          <span>复制</span>
+                        </>
+                      )}
                     </Button>
                   </div>
                   <p className="text-sm text-slate-700 line-clamp-2">{result.content}</p>
