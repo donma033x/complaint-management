@@ -23,14 +23,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # 创建非root用户并设置数据目录权限
-RUN addgroup -g 1001 -S nodejs &&    adduser -S nextjs -u 1001 &&    mkdir -p /app/data &&    chown -R nextjs:nodejs /app/data
+RUN addgroup -g 1001 -S nodejs &&    adduser -S nextjs -u 1001
 
 # 复制构建产物（非standalone模式）
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY . .
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --chown=nextjs:nodejs . .
+
+# 创建并设置数据目录权限
+RUN mkdir -p /app/data &&    chown -R nextjs:nodejs /app/data &&    chmod -R 755 /app/data
 
 # 切换到非root用户
 USER nextjs

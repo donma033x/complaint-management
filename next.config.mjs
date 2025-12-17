@@ -17,6 +17,9 @@ const nextConfig = {
     root: __dirname,
   },
   allowedDevOrigins: ['127.0.0.1:3000', 'localhost:3000'],
+  experimental: {
+    optimizePackageImports: ['@radix-ui'],
+  },
 }
 
 export default nextConfig
