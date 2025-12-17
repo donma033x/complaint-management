@@ -15,9 +15,9 @@ export default async function LoginPage() {
       <div className="w-full max-w-md px-4">
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-8 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4 overflow-hidden">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-black/30 rounded-full mb-4 overflow-hidden">
               <Image
-                src="/fidrua-logo.png"
+                src="/fidrua-logo-128.png"
                 alt="舆鹰@词盾"
                 width={64}
                 height={64}
@@ -25,8 +25,8 @@ export default async function LoginPage() {
                 priority
               />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">舆鹰@词盾</h1>
-            <p className="text-blue-100 text-sm">网络内容管理平台</p>
+            <h1 className="text-2xl font-bold text-white mb-2 drop-shadow">舆鹰@词盾</h1>
+            <p className="text-blue-100 text-sm drop-shadow">网络内容管理平台</p>
           </div>
 
           <div className="p-8">

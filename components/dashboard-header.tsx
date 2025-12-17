@@ -31,7 +31,7 @@ export function DashboardHeader() {
         <div className="flex items-center justify-between h-14 sm:h-16">
           <div className="flex items-center gap-2 sm:gap-3">
             <Image
-              src="/fidrua-logo.png"
+              src="/fidrua-logo-64.png"
               alt="舆鹰@词盾"
               width={40}
               height={40}
